@@ -186,11 +186,36 @@ void task_a()
     fout << "Average number in queue = " << ssqs.get_average_number_in_queue() << endl;
     fout << "Server utilization = " << ssqs.get_server_utilization() << endl;
     fout << "Time simulation ended = " << ssqs.get_final_time() << endl;
+
+    fout.close();
+}
+
+void task_b()
+{
+    vector<double> ks = {0.5, 0.6, 0.7, 0.8, 0.9};
+    double mean_interarrival_time = 1;
+    int number_of_customers = 1000000;
+
+    ofstream fout("output_b.csv");
+    fout << "k,average delay in queue,average number in queue,server utilization,time the simulation ended" << endl;
+
+    for(double k: ks)
+    {
+        double mean_service_time = mean_interarrival_time * k;
+        
+        SSQS ssqs(mean_interarrival_time, mean_service_time, number_of_customers);
+        ssqs.simulate();
+
+        fout << k << "," << ssqs.get_average_delay() << ","
+            << ssqs.get_average_number_in_queue() << "," << ssqs.get_server_utilization()
+            << "," << ssqs.get_final_time() << endl;
+    }
 }
 
 int main()
 {
     task_a();
+    task_b();
 
     return 0;
 }
