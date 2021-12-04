@@ -8,15 +8,25 @@ enum server_status_type {IDLE, BUSY};
 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
+vector<double> uniform_samples, interarrival_samples, service_samples;
+
 /*
     We first generate a random real number u in [0, 1] from uniform distribution.
     Then we turn that into an exponential distribution sample by taking -mean * ln(u).
     "mean" is the mean of the desired exponential distribution.
 */
-double get_exponential_sample(double mean)
+double get_exponential_sample(double mean, bool is_service, bool to_write)
 {
     double u = uniform_real_distribution<double>(0, 1)(rng);
-    return -mean * log(u);
+    double e = -mean * log(u);
+
+    if(!to_write) return e;
+
+    uniform_samples.push_back(u);
+    if(is_service) service_samples.push_back(e);
+    else interarrival_samples.push_back(e);
+
+    return e;
 }
 
 int get_bt(server_status_type server_status)
@@ -30,6 +40,7 @@ public:
     const double mean_interval_time;
     const double mean_service_time;
     const int number_of_customers;
+    bool to_write;
 
     // system states
     server_status_type server_status;
@@ -48,10 +59,12 @@ public:
 
     SSQS(double mean_interval_time,
         double mean_service_time,
-        double number_of_customers)
+        double number_of_customers,
+        bool to_write)
     : mean_interval_time(mean_interval_time),
       mean_service_time(mean_service_time),
-      number_of_customers(number_of_customers)
+      number_of_customers(number_of_customers),
+      to_write(to_write)
     {}
 
     void initialize()
@@ -60,7 +73,7 @@ public:
         number_in_queue = 0;
         time_of_last_event = 0;
         clock = 0;
-        next_A = get_exponential_sample(mean_interval_time); // first customer arrival time
+        next_A = get_exponential_sample(mean_interval_time, false, to_write); // first customer arrival time
         next_D = INF; // no customer is currently being served, hence next departure time is infinity
 
         number_delayed = 0;
@@ -86,7 +99,7 @@ public:
             if(next_event_type == ARRIVAL)
             {
                 clock = next_A;
-                next_A += get_exponential_sample(mean_interval_time); // scheduling next arrival event
+                next_A += get_exponential_sample(mean_interval_time, false, to_write); // scheduling next arrival event
 
                 area_under_qt += (clock-time_of_last_event) * number_in_queue;
                 area_under_bt += (clock-time_of_last_event) * get_bt(server_status);
@@ -107,7 +120,7 @@ public:
 
                     // server is going to be busy serving this customer
                     server_status = BUSY;
-                    next_D = clock + get_exponential_sample(mean_service_time);
+                    next_D = clock + get_exponential_sample(mean_service_time, true, to_write);
                 }
             }
             else
@@ -136,7 +149,7 @@ public:
                     total_delay += delay;
                     number_delayed++;
 
-                    next_D = clock+get_exponential_sample(mean_service_time);
+                    next_D = clock+get_exponential_sample(mean_service_time, true, to_write);
                 }
             }
 
@@ -171,7 +184,7 @@ void task_a()
     double mean_service_time = 0.5;
     int number_of_customers = 1000;
 
-    SSQS ssqs(mean_interval_time, mean_service_time, number_of_customers);
+    SSQS ssqs(mean_interval_time, mean_service_time, number_of_customers, true);
 
     ssqs.simulate();
 
@@ -194,7 +207,7 @@ void task_b()
 {
     vector<double> ks = {0.5, 0.6, 0.7, 0.8, 0.9};
     double mean_interarrival_time = 1;
-    int number_of_customers = 1000;
+    int number_of_customers = 1000000;
 
     ofstream fout("output_b.csv");
     fout << "k,average delay in queue,average number in queue,server utilization,time the simulation ended" << endl;
@@ -203,7 +216,7 @@ void task_b()
     {
         double mean_service_time = mean_interarrival_time * k;
         
-        SSQS ssqs(mean_interarrival_time, mean_service_time, number_of_customers);
+        SSQS ssqs(mean_interarrival_time, mean_service_time, number_of_customers, false);
         ssqs.simulate();
 
         fout << k << "," << ssqs.get_average_delay() << ","
@@ -212,10 +225,25 @@ void task_b()
     }
 }
 
+void task_c()
+{
+    ofstream fout("intermediate.txt");
+
+    for(double d: uniform_samples) fout << d << " ";
+    fout << endl;
+    for(double d: interarrival_samples) fout << d << " ";
+    fout << endl;
+    for(double d: service_samples) fout << d << " ";
+    fout << endl;
+
+    fout.close();
+}
+
 int main()
 {
     task_a();
     task_b();
+    task_c();
 
     return 0;
 }
