@@ -1,4 +1,5 @@
 import statistics
+import matplotlib.pyplot as plt
 
 uniform_samples = list(map(float, input().split()))
 interarrival_samples = list(map(float, input().split()))
@@ -31,3 +32,48 @@ f.write("Service distribution max = " + str(service_max) + "\n")
 f.write("Service distribution median = " + str(service_median) + "\n")
 
 f.close()
+
+number_of_bins = 20
+fig, ax = plt.subplots()
+plt.title("Uniform Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("P(x)")
+ax.hist(uniform_samples, number_of_bins, density=True)
+plt.savefig("uniform_P.png")
+
+fig, ax = plt.subplots()
+plt.title("Uniform Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("F(x)")
+ax.hist(uniform_samples, number_of_bins, density=True, cumulative=True)
+plt.savefig("uniform_F.png")
+
+number_of_bins = 20
+fig, ax = plt.subplots()
+plt.title("Interarrival Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("P(x)")
+ax.hist(interarrival_samples, number_of_bins, density=True)
+plt.savefig("interarrival_P.png")
+
+fig, ax = plt.subplots()
+plt.title("Interarrival Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("F(x)")
+ax.hist(interarrival_samples, number_of_bins, density=True, cumulative=True)
+plt.savefig("interarrival_F.png")
+
+number_of_bins = 20
+fig, ax = plt.subplots()
+plt.title("Service Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("P(x)")
+ax.hist(service_samples, number_of_bins, density=True)
+plt.savefig("service_P.png")
+
+fig, ax = plt.subplots()
+plt.title("Service Exponential Distribution")
+plt.xlabel("x")
+plt.ylabel("F(x)")
+ax.hist(service_samples, number_of_bins, density=True, cumulative=True)
+plt.savefig("service_F.png")

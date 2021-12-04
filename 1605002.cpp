@@ -207,7 +207,7 @@ void task_b()
 {
     vector<double> ks = {0.5, 0.6, 0.7, 0.8, 0.9};
     double mean_interarrival_time = 1;
-    int number_of_customers = 1000000;
+    int number_of_customers = 1000;
 
     ofstream fout("output_b.csv");
     fout << "k,average delay in queue,average number in queue,server utilization,time the simulation ended" << endl;

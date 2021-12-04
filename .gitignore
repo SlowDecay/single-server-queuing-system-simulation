@@ -1,3 +1,4 @@
 *.pdf
 output*
 intermediate*
+*.png
