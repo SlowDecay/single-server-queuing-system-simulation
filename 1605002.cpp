@@ -131,7 +131,7 @@ public:
                 area_under_qt += (clock-time_of_last_event) * number_in_queue;
                 area_under_bt += (clock-time_of_last_event) * get_bt(server_status);
 
-                // no customer is waiting in the queue, so servle will be idle and no next departure event
+                // no customer is waiting in the queue, so server will be idle and no next departure event
                 if(times_of_arrival.empty())
                 {
                     server_status = IDLE;
